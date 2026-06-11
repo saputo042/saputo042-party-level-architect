@@ -1,0 +1,106 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #111;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+#stage-wrap {
+  position: relative;
+  width: 1280px;
+  height: 720px;
+}
+
+#game canvas {
+  display: block;
+}
+
+/* ===== HUD（ui.theme で見た目が丸ごと変わるDOMオーバーレイ） ===== */
+#hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  --accent: #00e5ff;
+}
+
+.hud-title {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 26px;
+  letter-spacing: 0.12em;
+}
+
+.hud-score {
+  position: absolute;
+  top: 14px;
+  left: 18px;
+  font-size: 22px;
+}
+
+.hud-hp {
+  position: absolute;
+  top: 48px;
+  left: 18px;
+  font-size: 22px;
+  color: var(--accent);
+}
+
+/* popart: 太字コミック・白フチ */
+.theme-popart {
+  font-family: "Arial Black", sans-serif;
+  color: #ffe600;
+  -webkit-text-stroke: 1.5px #111;
+  text-shadow: 3px 3px 0 #ff2a6d;
+}
+
+/* cyber: モノスペース・ネオングロー */
+.theme-cyber {
+  font-family: "Consolas", monospace;
+  color: var(--accent);
+  text-shadow: 0 0 8px var(--accent), 0 0 24px var(--accent);
+}
+
+/* handdrawn: 手書き風 */
+.theme-handdrawn {
+  font-family: "Comic Sans MS", "Segoe Print", cursive;
+  color: #fff;
+  text-shadow: 1px 1px 0 #555;
+}
+.theme-handdrawn .hud-score {
+  border: 2px dashed #fff;
+  padding: 2px 10px;
+  border-radius: 12px 4px 14px 5px;
+}
+
+/* luxury: セリフ・ゴールド */
+.theme-luxury {
+  font-family: Georgia, "Times New Roman", serif;
+  color: #d4af37;
+  letter-spacing: 0.2em;
+}
+.theme-luxury .hud-score {
+  border-bottom: 1px solid #d4af37;
+}
+
+/* kawaii: 丸ゴ・ピンク */
+.theme-kawaii {
+  font-family: "Segoe UI", "Hiragino Maru Gothic ProN", sans-serif;
+  font-weight: 700;
+  color: #ff7eb6;
+  text-shadow: 0 0 6px #fff;
+}
+.theme-kawaii .hud-score {
+  background: rgba(255, 255, 255, 0.75);
+  padding: 2px 14px;
+  border-radius: 999px;
+}
