@@ -118,8 +118,8 @@ export class StageScene extends Phaser.Scene {
     });
   }
 
-  playBuildSequence(lines: string[], title: string): void {
-    this.ceremony.enqueueBuild(lines, title);
+  playBuildSequence(lines: string[], title: string, onDone?: () => void): void {
+    this.ceremony.enqueueBuild(lines, title, onDone);
   }
 
   // ---- パラメータ → 画面 の変換層（このゲームの心臓） ----

@@ -6,6 +6,7 @@ import { BeatEngine } from "./game/audio";
 import { Hud } from "./ui/hud";
 import { createDebugPanel } from "./debug/panel";
 import { buildLogLine, DEMO_INPUTS, metaOf } from "./demo/inputs";
+import { randomRoomCode, startHostMode } from "./net/host";
 
 // dev限定: 実行時エラーをDOMへ書き出す（ヘッドレスブラウザでの自動検証用）
 if (import.meta.env.DEV) {
@@ -36,8 +37,9 @@ const scene = new StageScene(store, {
   },
 });
 
+const urlQuery = new URLSearchParams(location.search);
 // ?headless: rAFが回らないヘッドレスブラウザ検証用にsetTimeoutループへ切替
-const headlessMode = new URLSearchParams(location.search).has("headless");
+const headlessMode = urlQuery.has("headless");
 
 new Phaser.Game({
   type: headlessMode ? Phaser.CANVAS : Phaser.AUTO,
@@ -91,8 +93,8 @@ function buildLines(): string[] {
   ];
 }
 
-function runBuild(): void {
-  scene.playBuildSequence(buildLines(), store.params.meta.title);
+function runBuild(onDone?: () => void): void {
+  scene.playBuildSequence(buildLines(), store.params.meta.title, onDone);
 }
 
 createDebugPanel(store, {
@@ -103,8 +105,15 @@ createDebugPanel(store, {
   },
   applyPartyPreset: () => store.patch(PARTY_PRESET),
   simulate,
-  runBuild,
+  runBuild: () => runBuild(),
 });
+
+// ?host: メインスクリーンモード。QRロビーを表示し、ルームサーバに接続して
+// スマホからの params_patch を儀式付きで世界に反映する
+if (urlQuery.has("host")) {
+  const roomCode = (urlQuery.get("room") || randomRoomCode()).toUpperCase();
+  startHostMode(roomCode, { store, sessionLog, runBuild });
+}
 
 // ハッシュフック（デモ・自動検証用）:
 //   #party            … 完成形プリセットを即適用

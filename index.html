@@ -10,6 +10,20 @@
     <div id="stage-wrap">
       <div id="game"></div>
       <div id="hud"></div>
+      <div id="cheers"></div>
+      <div id="buildgauge" class="hidden">
+        <span>世界を構築中… 全員、押し続けろ！</span>
+        <div class="track"><div id="buildgauge-fill"></div></div>
+      </div>
+      <div id="lobby" class="hidden">
+        <h1>PARTY LEVEL ARCHITECT</h1>
+        <p>この世界には、まだ何もない。<br />スマホでQRを読んで、世界の建築家になろう。</p>
+        <canvas id="qr"></canvas>
+        <div id="room-code"></div>
+        <div id="join-url"></div>
+        <ul id="player-list"></ul>
+        <button id="start-btn" disabled>建築家が揃ったらスタート</button>
+      </div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

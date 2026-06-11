@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0d0221" />
+    <title>Party Level Architect — 参加</title>
+    <link rel="stylesheet" href="/src/mobile/mobile.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- 参加 -->
+      <section id="s-join" class="screen active">
+        <h1 class="logo">PARTY<br />LEVEL<br />ARCHITECT</h1>
+        <p class="sub">この世界には、まだ何もない。</p>
+        <input id="name-input" type="text" maxlength="12" placeholder="なまえ（12文字まで）" />
+        <button id="join-btn" class="big-btn">世界の建築家になる</button>
+        <p id="join-error" class="error hidden"></p>
+      </section>
+
+      <!-- 役割カード -->
+      <section id="s-role" class="screen">
+        <p class="sub">あなたの役割は…</p>
+        <div id="role-card" class="role-card">
+          <div class="role-letter"></div>
+          <div class="role-label"></div>
+          <div class="role-desc"></div>
+        </div>
+        <p id="role-wait" class="sub blink">仲間とホスト画面の準備を待っています…</p>
+      </section>
+
+      <!-- お題カード -->
+      <section id="s-card" class="screen">
+        <div class="card-progress"></div>
+        <div class="prompt-card">
+          <h2 class="prompt-title"></h2>
+          <p class="prompt-hint"></p>
+          <textarea id="answer" rows="3" maxlength="120" placeholder="ここに言葉で描く"></textarea>
+          <button id="send-btn" class="big-btn">📤 世界に送る</button>
+        </div>
+      </section>
+
+      <!-- スタンプ配置 -->
+      <section id="s-stamp" class="screen">
+        <div class="card-progress"></div>
+        <h2 class="prompt-title"></h2>
+        <p class="prompt-hint"></p>
+        <div id="stamp-palette"></div>
+        <div id="stamp-map"><div id="stamp-marker" class="hidden"></div></div>
+        <button id="stamp-send" class="big-btn" disabled>📍 ここに置く</button>
+      </section>
+
+      <!-- 送信中→反映 -->
+      <section id="s-sent" class="screen">
+        <div class="spinner"></div>
+        <p class="sub">世界が あなたの言葉を 読んでいます…</p>
+        <div id="reflected-stamp" class="reflected hidden">REFLECTED ✓</div>
+      </section>
+
+      <!-- 全お題完了 -->
+      <section id="s-done" class="screen">
+        <h2>あなたの設計は すべて世界に届いた</h2>
+        <p class="sub blink">仲間の完成を待っています…</p>
+      </section>
+
+      <!-- BUILD -->
+      <section id="s-build" class="screen">
+        <h2>全員の準備が整った</h2>
+        <p class="sub">3人同時に 押し続けろ！</p>
+        <div id="build-btn">
+          <div id="build-fill"></div>
+          <span>BUILD</span>
+        </div>
+        <p id="build-status" class="sub"></p>
+      </section>
+
+      <!-- プレイ中（観戦+歓声） -->
+      <section id="s-play" class="screen">
+        <h2 id="play-title">世界、起動。</h2>
+        <p class="sub">メインスクリーンを見よ！ 歓声を送ろう</p>
+        <div id="cheer-btns">
+          <button data-emoji="🎉">🎉</button>
+          <button data-emoji="🔥">🔥</button>
+          <button data-emoji="❤️">❤️</button>
+          <button data-emoji="👏">👏</button>
+          <button data-emoji="⭐">⭐</button>
+        </div>
+      </section>
+    </div>
+    <script type="module" src="/src/mobile/mobile.ts"></script>
+  </body>
+</html>

@@ -18,7 +18,7 @@ export interface CeremonyHooks {
 
 type QueueItem =
   | { kind: "patch"; patch: ParamsPatch; meta: PatchMeta }
-  | { kind: "build"; lines: string[]; title: string };
+  | { kind: "build"; lines: string[]; title: string; onDone?: () => void };
 
 const LOG_COLOR = "#7cfc00";
 const MAX_LOG_LINES = 5;
@@ -39,8 +39,8 @@ export class CeremonyDirector {
     this.next();
   }
 
-  enqueueBuild(lines: string[], title: string): void {
-    this.queue.push({ kind: "build", lines, title });
+  enqueueBuild(lines: string[], title: string, onDone?: () => void): void {
+    this.queue.push({ kind: "build", lines, title, onDone });
     this.next();
   }
 
@@ -54,7 +54,11 @@ export class CeremonyDirector {
       this.next();
     };
     if (item.kind === "patch") this.playMaterialize(item.patch, item.meta, done);
-    else this.playBuild(item.lines, item.title, done);
+    else
+      this.playBuild(item.lines, item.title, () => {
+        item.onDone?.();
+        done();
+      });
   }
 
   // ---- マテリアライズ演出 ----

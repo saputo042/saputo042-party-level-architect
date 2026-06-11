@@ -3,9 +3,25 @@
 「言葉」と「配置」だけで、大画面に動くゲームを10分で誕生させる社内研修DX体験。
 設計の全体像は [docs/PRODUCT_DESIGN.md](docs/PRODUCT_DESIGN.md) を参照。
 
-**公開URL:** https://party-level-architect.pages.dev （`npm run deploy` でCloudflare Pagesに反映）
+**公開URL:** https://party-level-architect.takanori20040402.workers.dev
+（`npm run deploy` でCloudflare Workersに反映。WebSocket対応のためPagesからWorkers+静的アセットに移行済み）
 
-## 現在の進捗: Step 2 — マテリアライズ演出 + ビルドシーケンス
+## 遊び方（リアルタイムセッション）
+
+1. ホストPC: `/?host` を開く → QRコードとルームコードが表示される
+2. 参加者: スマホでQRを読む → 名前を入れて参加 → 役割カード（A/B/C）が配られる
+3. ホストが「スタート」→ 各自のお題カードに言葉で回答（Bの3問目はスタンプ配置）
+4. 全お題完了 → 3人同時にBUILDボタン長押し → メインスクリーンでビルド演出 → ゲーム起動
+
+## 現在の進捗: Step 3 — 通信層（Durable Object + スマホUI）
+
+- **RoomDO**: 1ルーム=1 Durable Object。join/役割配布/翻訳/スタンプ/BUILD同時長押し/歓声（`worker/RoomDO.ts`）
+- **辞書翻訳**: キーワード辞書で言葉→StageParamsパッチ+翻訳ログ（`shared/translate.ts`、Step 4でClaude APIが主役になりこれは保険に回る）
+- **スマホUI**: 参加→役割カードリバール→お題カード→スタンプ配置→BUILD長押し→歓声（`/mobile`）
+- **ホスト統合**: QRロビー、params_patch受信→マテリアライズ儀式、ビルド充電ゲージ、絵文字歓声
+- **スモークテスト**: `npx wrangler dev` 起動後に `node scripts/smoke.mjs`（本番は `SMOKE_URL=wss://... node scripts/smoke.mjs`）
+
+## Step 2 — マテリアライズ演出 + ビルドシーケンス
 
 「言葉が世界になる瞬間」の儀式化が完成。
 
@@ -40,7 +56,7 @@ npm run dev   # http://localhost:5173
 |---|---|---|
 | 1 | StageParams → 画面の変換層 + デバッグパネル | ✅ |
 | 2 | マテリアライズ演出 + ビルドシーケンス | ✅ |
-| 3 | 通信層（Cloudflare Durable Object + スマホUI） | 未着手 |
+| 3 | 通信層（Cloudflare Durable Object + スマホUI） | ✅ |
 | 4 | AI翻訳Worker（Claude API） | 未着手 |
 | 5 | ホスト操作パネル + 翻訳の全記録画面 | 未着手 |
 | 6 | アセット制作 & リハーサル | 未着手 |

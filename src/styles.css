@@ -55,6 +55,91 @@ body {
   color: var(--accent);
 }
 
+.hidden { display: none !important; }
+
+/* ===== ホストロビー（QR接続画面） ===== */
+#lobby {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 4, 24, 0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: #fff;
+  font-family: "Segoe UI", "Hiragino Sans", sans-serif;
+  text-align: center;
+  z-index: 50;
+}
+#lobby h1 {
+  font-size: 38px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  background: linear-gradient(90deg, #05d9e8, #ff2a6d, #ffd700);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+#lobby p { color: #b8b8d0; line-height: 1.8; }
+#qr { border-radius: 12px; background: #fff; padding: 8px; }
+#room-code { font-size: 40px; font-weight: 900; letter-spacing: 0.35em; color: #05d9e8; }
+#join-url { font-size: 13px; color: #8888aa; }
+#player-list { list-style: none; display: flex; gap: 22px; font-size: 18px; }
+#player-list .done { color: #05d9e8; font-size: 12px; margin-left: 4px; }
+#start-btn {
+  padding: 13px 36px;
+  font-size: 17px;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #05d9e8, #ff2a6d);
+  color: #fff;
+  cursor: pointer;
+}
+#start-btn:disabled { opacity: 0.35; }
+
+/* ===== ビルド充電ゲージ ===== */
+#buildgauge {
+  position: absolute;
+  left: 50%;
+  bottom: 36px;
+  transform: translateX(-50%);
+  width: 620px;
+  text-align: center;
+  color: #fff;
+  font-family: "Segoe UI", sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  text-shadow: 0 0 8px #000;
+  z-index: 40;
+}
+#buildgauge .track {
+  margin-top: 8px;
+  height: 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+}
+#buildgauge-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #05d9e8, #ff2a6d, #ffd700);
+}
+
+/* ===== 歓声（絵文字フロート） ===== */
+#cheers { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 30; }
+.cheer-float {
+  position: absolute;
+  bottom: -40px;
+  font-size: 38px;
+  animation: cheer-rise 2.5s ease-out forwards;
+}
+@keyframes cheer-rise {
+  to { transform: translateY(-540px) rotate(14deg); opacity: 0; }
+}
+
 /* popart: 太字コミック・白フチ */
 .theme-popart {
   font-family: "Arial Black", sans-serif;
