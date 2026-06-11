@@ -7,6 +7,7 @@ import {
   type StageParams,
 } from "../params/StageParams";
 import type { ParamStore, ParamsPatch } from "../params/ParamStore";
+import { CeremonyDirector } from "./CeremonyDirector";
 
 export const STAGE_W = 1280;
 export const STAGE_H = 720;
@@ -23,6 +24,9 @@ interface EnemySprite extends Phaser.Physics.Arcade.Sprite {
 export interface StageHooks {
   onScore: (v: number) => void;
   onHp: (v: number) => void;
+  onBuildWhiteout: () => void; // ビルドのホワイトアウト=無音開始
+  onBuildDrop: () => void;     // タイトル表示と同時にBGM開幕
+  onPatchApplied: (patch: ParamsPatch) => void; // HUD/BGM等のシーン外反映（儀式の反映瞬間と同期）
 }
 
 export class StageScene extends Phaser.Scene {
@@ -45,6 +49,7 @@ export class StageScene extends Phaser.Scene {
   private score = 0;
   private hp = 3;
   private invulnUntil = 0;
+  private ceremony!: CeremonyDirector;
   private mirrorball: Phaser.GameObjects.Container | null = null;
   private spotlight: Phaser.GameObjects.Arc | null = null;
   private springZone: Phaser.GameObjects.Zone | null = null;
@@ -98,8 +103,23 @@ export class StageScene extends Phaser.Scene {
       callback: () => this.spawnEnemy(),
     });
 
+    this.ceremony = new CeremonyDirector(this, {
+      applyPatch: (patch) => this.applyPatch(this.store.params, patch),
+      accent: () => this.store.params.ui.accentColor,
+      onBuildWhiteout: () => this.hooks.onBuildWhiteout(),
+      onBuildDrop: () => this.hooks.onBuildDrop(),
+    });
+
     this.applyAll(p);
-    this.store.onChange((params, patch) => this.applyPatch(params, patch));
+    // meta付き（=言葉由来）のパッチは儀式を経て反映、無印（=デバッグスライダー）は即時反映
+    this.store.onChange((params, patch, meta) => {
+      if (meta) this.ceremony.enqueuePatch(patch, meta);
+      else this.applyPatch(params, patch);
+    });
+  }
+
+  playBuildSequence(lines: string[], title: string): void {
+    this.ceremony.enqueueBuild(lines, title);
   }
 
   // ---- パラメータ → 画面 の変換層（このゲームの心臓） ----
@@ -116,6 +136,7 @@ export class StageScene extends Phaser.Scene {
     if (patch.enemies) this.applyEnemiesConfig();
     if (patch.gimmicks) this.applyGimmicks(p);
     if (patch.ui) this.applyUi(p);
+    this.hooks.onPatchApplied(patch);
   }
 
   private applyEnvironment(p: StageParams): void {

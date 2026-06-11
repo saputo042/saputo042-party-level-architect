@@ -8,6 +8,7 @@ import {
   type StageParams,
 } from "../params/StageParams";
 import type { ParamStore } from "../params/ParamStore";
+import { DEMO_INPUTS } from "../demo/inputs";
 
 // デバッグパネル — Step 3 以降でスマホ入力+AI翻訳に置き換わる「手動の翻訳者」。
 // パネルの全操作は store.patch() に集約され、ゲーム側はパッチの出所を知らない。
@@ -16,6 +17,8 @@ export interface PanelActions {
   playFinale: () => void;
   setBgmEnabled: (on: boolean) => void;
   applyPartyPreset: () => void;
+  simulate: (id: string) => void;
+  runBuild: () => void;
 }
 
 export function createDebugPanel(store: ParamStore, actions: PanelActions): GUI {
@@ -23,6 +26,15 @@ export function createDebugPanel(store: ParamStore, actions: PanelActions): GUI 
   const p = store.params;
 
   gui.add({ party: actions.applyPartyPreset }, "party").name("🎉 Party Preset");
+
+  // --- Input Simulator（Step 2: 言葉→世界の儀式を手元で再生） ---
+  const sim = gui.addFolder("Input Simulator（言葉→世界）");
+  const simView = { input: DEMO_INPUTS[0].id };
+  const options: Record<string, string> = {};
+  for (const d of DEMO_INPUTS) options[`${d.role}: ${d.sourceText}`] = d.id;
+  sim.add(simView, "input", options).name("入力を選ぶ");
+  sim.add({ send: () => actions.simulate(simView.input) }, "send").name("📤 送信（マテリアライズ）");
+  sim.add({ build: actions.runBuild }, "build").name("🔨 BUILD（世界を構築）");
 
   // --- Environment ---
   const env = gui.addFolder("Environment（プレイヤーA: 環境とテンポ）");

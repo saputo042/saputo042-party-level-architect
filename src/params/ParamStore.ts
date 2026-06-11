@@ -2,7 +2,16 @@ import type { StageParams } from "./StageParams";
 
 type DeepPartial<T> = { [K in keyof T]?: T[K] extends object ? DeepPartial<T[K]> : T[K] };
 export type ParamsPatch = DeepPartial<StageParams>;
-type Listener = (params: StageParams, patch: ParamsPatch) => void;
+
+// 入力の出所情報。これが付いたパッチは「儀式（マテリアライズ演出）」付きで反映される。
+// Step 4 以降は AI 翻訳 Worker がこの形を返す（translationLog が演出とホスト用カンペの原料）。
+export interface PatchMeta {
+  sourceText: string;
+  author: string;
+  translationLog: string[];
+}
+
+type Listener = (params: StageParams, patch: ParamsPatch, meta?: PatchMeta) => void;
 
 // StageParams の正本。Step 3 以降は Durable Object 側が正本になり、
 // このストアは params_patch メッセージの受け口に変わる（インターフェースは不変）。
@@ -14,9 +23,9 @@ export class ParamStore {
     this.params = structuredClone(initial);
   }
 
-  patch(p: ParamsPatch): void {
+  patch(p: ParamsPatch, meta?: PatchMeta): void {
     deepMerge(this.params as unknown as Record<string, unknown>, p as Record<string, unknown>);
-    for (const fn of this.listeners) fn(this.params, p);
+    for (const fn of this.listeners) fn(this.params, p, meta);
   }
 
   onChange(fn: Listener): void {
