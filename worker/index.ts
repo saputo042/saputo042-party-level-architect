@@ -5,6 +5,7 @@ export { RoomDO };
 export interface Env {
   ROOM: DurableObjectNamespace;
   ASSETS: Fetcher;
+  ANTHROPIC_API_KEY?: string; // wrangler secret。未設定時は辞書翻訳のみで動く
 }
 
 // ルーティング: /ws/:roomCode → Durable Object（WebSocket）、それ以外 → 静的アセット

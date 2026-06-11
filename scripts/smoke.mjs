@@ -1,8 +1,11 @@
 // 通信層スモークテスト: ホスト+参加者3名で 参加→翻訳→スタンプ→BUILD長押し→build_start を通す。
 // 使い方: wrangler dev起動後に `node scripts/smoke.mjs` (Node 22+, global WebSocket使用)
+//   SMOKE_URL=wss://... で本番に対して実行。SMOKE_AI=1 でAI翻訳(engine:"ai")を期待する。
 
 const BASE = process.env.SMOKE_URL ?? "ws://localhost:8787";
-const ROOM = "TEST";
+const EXPECT_ENGINE = process.env.SMOKE_AI ? "ai" : "dict";
+// DOはルーム名ごとに状態を持つため、毎回フレッシュなルームで実行する
+const ROOM = `T${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 
 let failures = 0;
 const ok = (cond, label) => {
@@ -73,6 +76,8 @@ try {
   ok(patch1.patch.environment?.backdrop === "disco", `→ backdrop: ${patch1.patch.environment?.backdrop}`);
   ok(patch1.author === "ミカ", `author=${patch1.author}`);
   ok(patch1.translationLog.length >= 2, `translationLog ${patch1.translationLog.length}行`);
+  ok(patch1.engine === EXPECT_ENGINE, `engine=${patch1.engine}（期待: ${EXPECT_ENGINE}）`);
+  if (patch1.engine === "ai") console.log(`   AI翻訳ログ: ${patch1.translationLog.join(" / ")}`);
   await waitFor(phones[0], (m) => m.type === "reflected" && m.promptId === "a1", "a1 reflected");
   ok(true, "a1 reflected受信（スマホ振動トリガー）");
 
@@ -83,7 +88,7 @@ try {
   send(phones[1], { type: "input_text", promptId: "b2", text: "すごく跳ね回る" });
   const pb2 = await waitFor(host, (m) => m.type === "params_patch", "b2 patch");
   ok(pb2.patch.enemies?.[0]?.skin.base === "slime", "b2 後も skin.base=slime が保持（テンプレート合流）");
-  ok(pb2.patch.enemies?.[0]?.behavior.bounce >= 0.9, `b2 → bounce: ${pb2.patch.enemies?.[0]?.behavior.bounce}`);
+  ok(pb2.patch.enemies?.[0]?.behavior.bounce >= 0.7, `b2「すごく跳ね回る」→ bounce: ${pb2.patch.enemies?.[0]?.behavior.bounce}`);
 
   // 6. スタンプ配置
   send(phones[1], { type: "place_stamp", promptId: "b3", kind: "mirrorball", x: 0.5, y: 0.2 });
@@ -96,7 +101,7 @@ try {
   send(phones[2], { type: "input_text", promptId: "c1", text: "ポップアート風" });
   send(phones[2], { type: "input_text", promptId: "c2", text: "画面を埋め尽くす紙吹雪" });
   send(phones[2], { type: "input_text", promptId: "c3", text: "夜空いっぱいの花火" });
-  await waitFor(host, (m) => m.type === "phase_change" && m.phase === "buildready", "buildready自動遷移", 8000);
+  await waitFor(host, (m) => m.type === "phase_change" && m.phase === "buildready", "buildready自動遷移", 20000);
   ok(true, "全お題完了 → buildready 自動遷移");
 
   // 8. BUILD同時長押し: 2人では発火せず、3人で充電開始→build_start

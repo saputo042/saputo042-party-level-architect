@@ -38,6 +38,7 @@ export type S2C =
       sourceText: string;
       author: string;
       translationLog: string[];
+      engine?: "ai" | "dict"; // どの翻訳者が訳したか（ホストパネル表示・検証用）
     }
   | { type: "phase_change"; phase: Phase }
   | { type: "reflected"; promptId: string }

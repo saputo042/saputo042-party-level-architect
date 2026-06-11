@@ -13,7 +13,16 @@
 3. ホストが「スタート」→ 各自のお題カードに言葉で回答（Bの3問目はスタンプ配置）
 4. 全お題完了 → 3人同時にBUILDボタン長押し → メインスクリーンでビルド演出 → ゲーム起動
 
-## 現在の進捗: Step 3 — 通信層（Durable Object + スマホUI）
+## 現在の進捗: Step 4 — AI翻訳（Claude API）
+
+- **AI翻訳** (`worker/aiTranslate.ts`): `claude-haiku-4-5` + tool use強制（`tool_choice` + strictスキーマ）で
+  「言葉 → StageParamsパッチ + 翻訳ログ + 翻訳意図note」を生成。タイムアウト3.5秒
+- **二段構え**: AI失敗/タイムアウト/未課金時は辞書翻訳に即フォールバック。体験は途切れない
+- `params_patch` に `engine: "ai" | "dict"` が付くので、どちらが訳したか追跡可能（`npx wrangler tail` でエラー監視）
+- 検証: `SMOKE_AI=1 SMOKE_URL=wss://... node scripts/smoke.mjs` でAI経路、なしで辞書経路をテスト
+- **要件**: Workersシークレット `ANTHROPIC_API_KEY` + AnthropicアカウントのAPIクレジット残高
+
+## Step 3 — 通信層（Durable Object + スマホUI）
 
 - **RoomDO**: 1ルーム=1 Durable Object。join/役割配布/翻訳/スタンプ/BUILD同時長押し/歓声（`worker/RoomDO.ts`）
 - **辞書翻訳**: キーワード辞書で言葉→StageParamsパッチ+翻訳ログ（`shared/translate.ts`、Step 4でClaude APIが主役になりこれは保険に回る）
@@ -57,6 +66,6 @@ npm run dev   # http://localhost:5173
 | 1 | StageParams → 画面の変換層 + デバッグパネル | ✅ |
 | 2 | マテリアライズ演出 + ビルドシーケンス | ✅ |
 | 3 | 通信層（Cloudflare Durable Object + スマホUI） | ✅ |
-| 4 | AI翻訳Worker（Claude API） | 未着手 |
+| 4 | AI翻訳Worker（Claude API） | ✅ |
 | 5 | ホスト操作パネル + 翻訳の全記録画面 | 未着手 |
 | 6 | アセット制作 & リハーサル | 未着手 |

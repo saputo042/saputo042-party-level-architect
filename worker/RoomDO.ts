@@ -7,8 +7,15 @@ import {
   type S2C,
 } from "../shared/protocol";
 import { PROMPT_CARDS } from "../shared/prompts";
-import { buildEnemiesFromTraits, translateText, type EnemyTraits } from "../shared/translate";
+import {
+  buildEnemiesFromTraits,
+  translateText,
+  type EnemyTraits,
+  type TranslationResult,
+} from "../shared/translate";
 import { GIMMICK_PRESETS, type GimmickDef, type GimmickKind } from "../src/params/StageParams";
+import { aiTranslate } from "./aiTranslate";
+import type { Env } from "./index";
 
 // RoomDO — 1ルーム = 1 Durable Object。StageParamsへのパッチ発行の正本（設計書 3.2/3.3）。
 // 研修1回ぶん（〜10分）のセッションを想定し、状態はインメモリで持つ
@@ -30,7 +37,12 @@ const GIMMICK_LABELS: Record<GimmickKind, string> = {
 };
 
 export class RoomDO implements DurableObject {
+  private env: Env;
   private conns: Conn[] = [];
+
+  constructor(_state: DurableObjectState, env: Env) {
+    this.env = env;
+  }
   private phase: Phase = "lobby";
   private roleCursor = 0;
   private playerSeq = 0;
@@ -73,7 +85,8 @@ export class RoomDO implements DurableObject {
       case "join":
         return this.onJoin(conn, msg.name);
       case "input_text":
-        return this.onInputText(conn, msg.promptId, msg.text);
+        void this.onInputText(conn, msg.promptId, msg.text);
+        return;
       case "place_stamp":
         return this.onPlaceStamp(conn, msg.promptId, msg.kind, msg.x, msg.y);
       case "build_hold":
@@ -107,11 +120,19 @@ export class RoomDO implements DurableObject {
     this.broadcast(this.roomState());
   }
 
-  private onInputText(conn: Conn, promptId: string, text: string): void {
+  // AI翻訳（Claude API）を主役に、失敗時はキーワード辞書へフォールバック（設計書 3.5）
+  private async onInputText(conn: Conn, promptId: string, text: string): Promise<void> {
     const player = conn.player;
     if (!player) return;
     const cleaned = String(text).slice(0, 120).trim();
-    const result = translateText(promptId, cleaned);
+
+    let result: TranslationResult | null = null;
+    let engine: "ai" | "dict" = "dict";
+    if (this.env.ANTHROPIC_API_KEY) {
+      result = await aiTranslate(this.env.ANTHROPIC_API_KEY, promptId, cleaned);
+      if (result) engine = "ai";
+    }
+    result ??= translateText(promptId, cleaned);
 
     let patch = result.patch;
     if (result.enemy) {
@@ -126,6 +147,7 @@ export class RoomDO implements DurableObject {
         sourceText: cleaned,
         author: player.name,
         translationLog: result.translationLog,
+        engine,
       });
     }
     this.send(conn, { type: "reflected", promptId });
