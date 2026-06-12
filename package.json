@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "dev:full": "vite build && wrangler dev",
+    "dev:lan": "vite build && wrangler dev --ip 0.0.0.0",
+    "rehearsal": "node scripts/rehearsal.mjs",
     "check": "tsc --noEmit && tsc -p worker --noEmit",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",

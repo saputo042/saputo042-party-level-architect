@@ -4,7 +4,7 @@ import type { GimmickKind } from "../src/params/StageParams";
 // WebSocketメッセージプロトコル（設計書 3.7）。
 // クライアント（スマホ/ホスト画面）と Durable Object ルームサーバの共有定義。
 
-export type Phase = "lobby" | "create" | "buildready" | "build" | "play";
+export type Phase = "lobby" | "create" | "buildready" | "build" | "play" | "debrief";
 export type Role = "A" | "B" | "C";
 
 export interface PromptCard {

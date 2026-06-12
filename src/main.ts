@@ -112,7 +112,12 @@ createDebugPanel(store, {
 // スマホからの params_patch を儀式付きで世界に反映する
 if (urlQuery.has("host")) {
   const roomCode = (urlQuery.get("room") || randomRoomCode()).toUpperCase();
-  startHostMode(roomCode, { store, sessionLog, runBuild });
+  startHostMode(roomCode, {
+    store,
+    sessionLog,
+    runBuild,
+    setAutopilot: (on) => scene.setAutopilot(on),
+  });
 }
 
 // ハッシュフック（デモ・自動検証用）:

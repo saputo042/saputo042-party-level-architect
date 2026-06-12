@@ -95,7 +95,19 @@ export class RoomDO implements DurableObject {
         if (conn.player) this.broadcast({ type: "cheer", emoji: msg.emoji, name: conn.player.name });
         return;
       case "host_phase":
-        if (conn.isHost) this.setPhase(msg.phase);
+        if (!conn.isHost) return;
+        // 緊急用の強制ビルド: 長押しの儀式を待たずホストがビルドを発火できる
+        if (msg.phase === "build" && this.phase !== "build") {
+          if (this.chargeTimer) {
+            clearTimeout(this.chargeTimer);
+            this.chargeTimer = null;
+          }
+          this.phase = "build";
+          this.broadcast({ type: "phase_change", phase: "build" });
+          this.broadcast({ type: "build_start" });
+        } else {
+          this.setPhase(msg.phase);
+        }
         return;
     }
   }

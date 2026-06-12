@@ -74,6 +74,7 @@ function onMessage(msg: S2C): void {
         vibrate([60, 60, 60]);
         show("s-play");
       }
+      if (msg.phase === "debrief") show("s-debrief");
       break;
     case "reflected": {
       vibrate([40, 50, 120]);

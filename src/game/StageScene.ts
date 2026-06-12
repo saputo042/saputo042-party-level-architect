@@ -50,6 +50,7 @@ export class StageScene extends Phaser.Scene {
   private hp = 3;
   private invulnUntil = 0;
   private ceremony!: CeremonyDirector;
+  private autopilot = false;
   private mirrorball: Phaser.GameObjects.Container | null = null;
   private spotlight: Phaser.GameObjects.Arc | null = null;
   private springZone: Phaser.GameObjects.Zone | null = null;
@@ -122,6 +123,28 @@ export class StageScene extends Phaser.Scene {
     this.ceremony.enqueueBuild(lines, title, onDone);
   }
 
+  // デモ自動走行（ホストパネルの🤖トグル）: 前方の脅威を見てジャンプする
+  setAutopilot(on: boolean): void {
+    this.autopilot = on;
+  }
+
+  private autopilotTick(): void {
+    const body = this.player.body as Phaser.Physics.Arcade.Body;
+    if (!body.blocked.down) return;
+    const threats = [
+      ...(this.enemies.getChildren() as Phaser.Physics.Arcade.Sprite[]),
+      ...(this.bullets.getChildren() as Phaser.Physics.Arcade.Sprite[]),
+    ];
+    for (const t of threats) {
+      if (!t.active) continue;
+      const dx = t.x - this.player.x;
+      if (dx > 20 && dx < 260 && t.y > this.player.y - 100) {
+        this.jump();
+        return;
+      }
+    }
+  }
+
   // ---- パラメータ → 画面 の変換層（このゲームの心臓） ----
 
   private applyAll(p: StageParams): void {
@@ -180,16 +203,37 @@ export class StageScene extends Phaser.Scene {
         for (let i = 0; i < 6; i++) {
           const h = 120 + ((i * 97) % 180);
           add(this.add.rectangle(110 + i * 210, GROUND_TOP - h / 2, 130, h, c, 0.5));
+          // 窓明かり
+          for (let w = 0; w < 4; w++) {
+            add(
+              this.add.rectangle(
+                80 + i * 210 + (w % 2) * 40,
+                GROUND_TOP - h + 40 + Math.floor(w / 2) * 50,
+                16,
+                20,
+                0xfff2a8,
+                0.55
+              )
+            );
+          }
         }
         break;
       case "beach":
         add(this.add.circle(STAGE_W - 200, 120, 60, c));
+        for (let i = 0; i < 3; i++) {
+          // 雲
+          add(this.add.ellipse(190 + i * 330, 130 + (i % 2) * 50, 130, 36, 0xffffff, 0.35));
+          add(this.add.ellipse(230 + i * 330, 116 + (i % 2) * 50, 90, 30, 0xffffff, 0.3));
+        }
         for (let i = 0; i < 5; i++)
           add(this.add.ellipse(160 + i * 240, 560 + (i % 2) * 30, 180, 24, c, 0.4));
         break;
       case "space":
         add(this.add.circle(220, 150, 70, c, 0.8));
         add(this.add.ellipse(220, 150, 220, 40, c, 0.35));
+        add(this.add.circle(1020, 110, 30, c, 0.5)); // 第二の月
+        add(this.add.circle(1006, 100, 7, 0x000000, 0.2)); // クレーター
+        add(this.add.circle(1032, 120, 5, 0x000000, 0.2));
         break;
       case "kitchen":
         add(this.add.rectangle(STAGE_W / 2, 520, 700, 30, c, 0.6));
@@ -364,6 +408,7 @@ export class StageScene extends Phaser.Scene {
     const scroll = p.environment.scrollSpeed;
 
     this.groundTile.tilePositionX += 240 * scroll * dt;
+    if (this.autopilot) this.autopilotTick();
 
     // BPMに同期した世界の鼓動（テンポが世界の物理を変える、の最小実装）
     const pulse = 1 + 0.05 * Math.sin((time / 1000) * (p.environment.bgm.bpm / 60) * Math.PI * 2);
@@ -529,7 +574,13 @@ export class StageScene extends Phaser.Scene {
     };
 
     tex("px", 8, 8, () => g.fillRect(0, 0, 8, 8));
-    tex("playerTex", 44, 60, () => g.fillRoundedRect(0, 0, 44, 60, 10));
+    tex("playerTex", 44, 60, () => {
+      g.fillRoundedRect(0, 0, 44, 60, 10);
+      g.fillStyle(0x222244, 0.85); // バイザー
+      g.fillRoundedRect(20, 10, 20, 14, 6);
+      g.fillStyle(0xffffff, 0.5);
+      g.fillRect(24, 13, 6, 3);
+    });
     tex("groundTex", 64, 60, () => {
       g.fillRect(0, 0, 64, 60);
       g.fillStyle(0x000000, 0.15);
@@ -539,23 +590,54 @@ export class StageScene extends Phaser.Scene {
     tex("skin-slime", 56, 44, () => {
       g.fillEllipse(28, 28, 56, 32);
       g.fillCircle(28, 16, 16);
+      g.fillStyle(0x000000, 0.45); // つぶらな瞳
+      g.fillCircle(21, 16, 4);
+      g.fillCircle(35, 16, 4);
+      g.fillStyle(0xffffff, 0.6); // ぷるぷるハイライト
+      g.fillEllipse(18, 8, 10, 6);
     });
-    tex("skin-ball", 52, 52, () => g.fillCircle(26, 26, 26));
+    tex("skin-ball", 52, 52, () => {
+      g.fillCircle(26, 26, 26);
+      g.fillStyle(0x000000, 0.18); // ミラーボール格子
+      g.fillRect(0, 16, 52, 3);
+      g.fillRect(0, 33, 52, 3);
+      g.fillRect(16, 0, 3, 52);
+      g.fillRect(33, 0, 3, 52);
+      g.fillStyle(0xffffff, 0.7);
+      g.fillEllipse(17, 13, 12, 8);
+    });
     tex("skin-ghost", 52, 60, () => {
       g.fillCircle(26, 24, 24);
       g.fillRect(2, 24, 48, 24);
-      g.fillStyle(0x000000, 0.3);
-      g.fillCircle(18, 20, 4);
-      g.fillCircle(34, 20, 4);
+      // すその波
+      g.fillCircle(10, 48, 8);
+      g.fillCircle(26, 50, 8);
+      g.fillCircle(42, 48, 8);
+      g.fillStyle(0x000000, 0.35);
+      g.fillCircle(18, 20, 5);
+      g.fillCircle(34, 20, 5);
+      g.fillEllipse(26, 32, 8, 5); // あいた口
     });
     tex("skin-bottle", 32, 64, () => {
       g.fillRoundedRect(0, 16, 32, 48, 6);
       g.fillRect(10, 0, 12, 20);
+      g.fillStyle(0xffffff, 0.4); // ラベル
+      g.fillRect(4, 32, 24, 14);
+      g.fillStyle(0x000000, 0.4);
+      g.fillCircle(11, 25, 3);
+      g.fillCircle(21, 25, 3);
     });
     tex("skin-cake", 56, 48, () => {
       g.fillRect(0, 20, 56, 28);
       g.fillEllipse(28, 20, 56, 16);
       g.fillRect(25, 0, 6, 14);
+      g.fillStyle(0xffffff, 0.55); // クリームのしずく
+      g.fillCircle(10, 26, 5);
+      g.fillCircle(28, 29, 5);
+      g.fillCircle(46, 26, 5);
+      g.fillStyle(0x000000, 0.4);
+      g.fillCircle(19, 36, 3);
+      g.fillCircle(37, 36, 3);
     });
     g.destroy();
   }
